@@ -574,3 +574,28 @@ def ventas_rango_fechas():
     total = sum(v["total"] for v in filtradas)
     print(f"Total ventas en rango: {dinero(total)}")
 
+def leer_costo_guardado(item):
+    costo_total_item = 0.0
+    if "desglose_lotes" in item:
+        for dl in item["desglose_lotes"]:
+            costo_total_item += dl["cantidad"] * dl["costo_unitario"]
+    else:
+        lotes_p = [l for l in lotes if l["codigo_producto"] == item["codigo_producto"]]
+        costo_u = lotes_p[0]["costo_unitario"] if lotes_p else 0
+        costo_total_item = item["cantidad"] * costo_u
+    return costo_total_item
+
+def reporte_utilidad():
+    print("\n--- REPORTE DE UTILIDAD ---")
+    ventas_validas = [v for v in ventas if v.get("estado") == "completada"]
+    if not ventas_validas:
+        print("No hay ventas registradas.")
+        return
+
+    ingreso_total = sum(v["total"] for v in ventas_validas)
+    costo_total = sum(sum(leer_costo_guardado(it) for it in v["items"]) for v in ventas_validas)
+    utilidad = ingreso_total - costo_total
+
+    print(f"Ingresos: {dinero(ingreso_total)}")
+    print(f"Costos:   {dinero(costo_total)}")
+    print(f"Utilidad: {dinero(utilidad)}")
