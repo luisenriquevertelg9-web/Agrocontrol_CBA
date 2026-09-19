@@ -680,3 +680,35 @@ def reportes():
         else: print("Opcion invalida.")
 
 
+def menu():
+    cargar_todo()
+    while True:
+        print("\n" + "="*45)
+        print("      SISTEMA AGROCONTROL - MENU PRINCIPAL")
+        print("="*45)
+        print("1. Gestion de Productos")
+        print("2. Gestion de Lotes")
+        print("3. Gestion de Inventario")
+        print("4. Registrar Venta")
+        print("5. Consultar Ventas")
+        print("6. Anular Venta")
+        print("7. Reportes")
+        print("8. Salir")
+        print("="*45)
+        
+        opcion = input("Seleccione una opcion (1-8): ").strip()
+
+        if opcion == "1": gestionar_productos()
+        elif opcion == "2": gestionar_lotes()
+        elif opcion == "3": gestionar_inventario()
+        elif opcion == "4": registrar_venta()
+        elif opcion == "5": consultar_ventas()
+        elif opcion == "6": devolver_venta()
+        elif opcion == "7": reportes()
+        elif opcion == "8":
+            print("\n¡Hasta pronto!")
+            break
+        else:
+            print("Opcion invalida.")
+
+
