@@ -205,3 +205,117 @@ def gestionar_productos():
         elif opc == "6": break
         else: print("Opcion invalida.")
 
+def registrar_lote():
+    print("\n--- REGISTRAR LOTE ---")
+    if not productos:
+        print("No hay productos registrados.")
+        return
+
+    codigo = input("Codigo del producto: ").strip().upper()
+    p = producto_por_codigo(codigo)
+    if not p:
+        print("Producto no encontrado.")
+        return
+
+    cant = leer_entero("Cantidad ingresada: ", minimo=1)
+    costo_u = leer_float("Costo unitario: ", minimo=0)
+    ubicacion = input("Ubicacion: ").strip()
+    fecha_venc = input("Fecha vencimiento (opcional): ").strip()
+
+    nuevo_l = {
+        "id": siguiente_id(lotes),
+        "codigo_producto": codigo,
+        "cantidad_inicial": cant,
+        "cantidad_actual": cant,
+        "costo_unitario": costo_u,
+        "fecha_ingreso": fecha_actual(),
+        "fecha_vencimiento": fecha_venc if fecha_venc else "N/A",
+        "ubicacion": ubicacion if ubicacion else "General",
+        "estado": "activo"
+    }
+    lotes.append(nuevo_l)
+
+    movimientos.append({
+        "id": siguiente_id(movimientos),
+        "fecha": fecha_actual(),
+        "codigo_producto": codigo,
+        "id_lote": nuevo_l["id"],
+        "tipo": "ENTRADA",
+        "cantidad": cant,
+        "motivo": "Registro de nuevo lote"
+    })
+
+    guardar_todo()
+    print(f"Lote ID #{nuevo_l['id']} registrado correctamente.")
+
+def listar_lotes():
+    print("\n--- LISTADO DE LOTES ---")
+    if not lotes:
+        print("No hay lotes registrados.")
+        return
+
+    print(f"\n{'ID':<5} {'CODIGO':<10} {'PRODUCTO':<20} {'INICIAL':<8} {'ACTUAL':<8} {'COSTO U.':<12} {'UBICACION':<15} {'ESTADO':<8}")
+    print("-" * 95)
+    for l in lotes:
+        p = producto_por_codigo(l["codigo_producto"])
+        nom_p = p["nombre"] if p else "Desconocido"
+        print(f"{l['id']:<5} {l['codigo_producto']:<10} {nom_p:<20} {l['cantidad_inicial']:<8} {l['cantidad_actual']:<8} {dinero(l['costo_unitario']):<12} {l['ubicacion']:<15} {l['estado']:<8}")
+
+def cosechar_lote():
+    print("\n--- ADICION A LOTE ---")
+    id_l = leer_entero("ID del lote: ", minimo=1)
+    l = lote_por_id(id_l)
+    if not l or l["estado"] != "activo":
+        print("Lote no encontrado o inactivo.")
+        return
+
+    cant = leer_entero("Cantidad adicional: ", minimo=1)
+    l["cantidad_inicial"] += cant
+    l["cantidad_actual"] += cant
+
+    movimientos.append({
+        "id": siguiente_id(movimientos),
+        "fecha": fecha_actual(),
+        "codigo_producto": l["codigo_producto"],
+        "id_lote": l["id"],
+        "tipo": "ENTRADA",
+        "cantidad": cant,
+        "motivo": "Adicion a lote"
+    })
+
+    guardar_todo()
+    print(f"Se adicionaron {cant} unidades al Lote ID #{l['id']}.")
+
+def cambiar_estado_lote():
+    print("\n--- CAMBIAR ESTADO DE LOTE ---")
+    id_l = leer_entero("ID del lote: ", minimo=1)
+    l = lote_por_id(id_l)
+    if not l:
+        print("Lote no encontrado.")
+        return
+
+    print("1. activo  2. agotado  3. descartado")
+    op = input("Nuevo estado: ").strip()
+    mapa = {"1": "activo", "2": "agotado", "3": "descartado"}
+    if op in mapa:
+        l["estado"] = mapa[op]
+        guardar_todo()
+        print("Estado actualizado.")
+
+def gestionar_lotes():
+    while True:
+        print("\n=== GESTION DE LOTES ===")
+        print("1. Registrar nuevo lote")
+        print("2. Listar lotes")
+        print("3. Adicion a lote")
+        print("4. Cambiar estado de lote")
+        print("5. Volver al menu principal")
+        opc = input("Seleccione una opcion: ").strip()
+
+        if opc == "1": registrar_lote()
+        elif opc == "2": listar_lotes()
+        elif opc == "3": cosechar_lote()
+        elif opc == "4": cambiar_estado_lote()
+        elif opc == "5": break
+        else: print("Opcion invalida.")
+
