@@ -518,6 +518,7 @@ def consultar_ventas():
     for v in ventas:
         print(f"{v['id']:<5} {v['fecha']:<20} {v['cliente']:<20} {dinero(v['total']):<12} {v['estado']:<10}")
 
+ 
 
 def ranking_productos():
     print("\n--- RANKING DE PRODUCTOS ---")
@@ -601,7 +602,70 @@ def reporte_utilidad():
     print(f"Costos:   {dinero(costo_total)}")
     print(f"Utilidad: {dinero(utilidad)}")
 
+def alertas_stock():
+    print("\n--- ALERTAS DE STOCK ---")
+    alertas = []
 
+    for p in productos:
+        stock = stock_producto(p["codigo"])
+        if stock <= p["stock_minimo"]:
+            alertas.append({
+                "codigo": p["codigo"],
+                "nombre": p["nombre"],
+                "stock": stock,
+                "minimo": p["stock_minimo"]
+            })
+
+    if not alertas:
+        print("No hay productos con stock bajo.")
+        return
+
+    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':<10} {'MINIMO':<10}")
+    print("-" * 55)
+
+    for a in alertas:
+        print(f"{a['codigo']:<10} {a['nombre']:<25} {a['stock']:<10} {a['minimo']:<10}")
+
+
+def reporte_existencias():
+    print("\n--- VALORACION DE INVENTARIO ---")
+
+    if not productos:
+        print("No hay productos registrados.")
+        return
+
+    total = 0.0
+
+    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':<10} {'PRECIO':<15} {'VALOR':<15}")
+    print("-" * 80)
+
+    for p in productos:
+        stock = stock_producto(p["codigo"])
+        valor = stock * p["precio"]
+        total += valor
+
+        print(f"{p['codigo']:<10} {p['nombre']:<25} {stock:<10} {dinero(p['precio']):<15} {dinero(valor):<15}")
+
+    print("-" * 80)
+    print(f"VALOR TOTAL DEL INVENTARIO: {dinero(total)}")
+
+
+def reporte_ventas():
+    print("\n--- RESUMEN DE VENTAS ---")
+
+    ventas_validas = [v for v in ventas if v.get("estado") == "completada"]
+
+    if not ventas_validas:
+        print("No hay ventas registradas.")
+        return
+
+    cantidad_ventas = len(ventas_validas)
+    total_ventas = sum(v["total"] for v in ventas_validas)
+    promedio = total_ventas / cantidad_ventas
+
+    print(f"Cantidad de ventas: {cantidad_ventas}")
+    print(f"Total vendido: {dinero(total_ventas)}")
+    print(f"Promedio por venta: {dinero(promedio)}")
 
 ###CORREGIR##
 
@@ -653,6 +717,7 @@ def devolver_venta():
     v["estado"] = "anulada"
     guardar_todo()
     print("Venta anulada y stock reingresado.")
+
 
 def reportes():
     while True:
@@ -710,7 +775,6 @@ def menu():
             break
         else:
             print("Opcion invalida.")
-
 
 if __name__ == "__main__":
     menu()
