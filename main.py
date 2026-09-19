@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 from datetime import datetime
 
 DATA = "data"
@@ -599,3 +600,83 @@ def reporte_utilidad():
     print(f"Ingresos: {dinero(ingreso_total)}")
     print(f"Costos:   {dinero(costo_total)}")
     print(f"Utilidad: {dinero(utilidad)}")
+
+
+
+###CORREGIR##
+
+def exportar_csv():
+    print("\n--- EXPORTAR A CSV ---")
+    if not productos:
+        print("No hay productos.")
+        return
+
+    ruta = "inventario.csv"
+    try:
+        with open(ruta, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Codigo", "Nombre", "Categoria", "Unidad", "Precio", "Stock", "Stock Minimo", "Activo"])
+            for p in productos:
+                writer.writerow([p["codigo"], p["nombre"], p["categoria"], p["unidad"], p["precio"], stock_producto(p["codigo"]), p["stock_minimo"], p.get("activo", True)])
+        print(f"Exportado exitosamente a '{ruta}'.")
+    except Exception as e:
+        print(f"Error al exportar: {e}")
+
+def devolver_venta():
+    print("\n--- ANULAR VENTA ---")
+    id_v = leer_entero("ID de venta a anular: ", minimo=1)
+    v = next((x for x in ventas if x["id"] == id_v), None)
+
+    if not v or v.get("estado") == "anulada":
+        print("Venta no encontrada o ya anulada.")
+        return
+
+    for it in v["items"]:
+        if "desglose_lotes" in it:
+            for dl in it["desglose_lotes"]:
+                l = lote_por_id(dl["id_lote"])
+                if l:
+                    l["cantidad_actual"] += dl["cantidad"]
+                    if l["estado"] == "agotado":
+                        l["estado"] = "activo"
+
+        movimientos.append({
+            "id": siguiente_id(movimientos),
+            "fecha": fecha_actual(),
+            "codigo_producto": it["codigo_producto"],
+            "id_lote": 0,
+            "tipo": "ENTRADA",
+            "cantidad": it["cantidad"],
+            "motivo": f"Anulacion de venta #{id_v}"
+        })
+
+    v["estado"] = "anulada"
+    guardar_todo()
+    print("Venta anulada y stock reingresado.")
+
+def reportes():
+    while True:
+        print("\n=== REPORTES ===")
+        print("1. Alertas de stock")
+        print("2. Valoracion de inventario")
+        print("3. Resumen de ventas")
+        print("4. Ranking de productos")
+        print("5. Reporte de utilidad")
+        print("6. Rotacion de inventario")
+        print("7. Ventas por fecha")
+        print("8. Exportar CSV")
+        print("9. Volver")
+        opc = input("Seleccione: ").strip()
+##AQUIIIIIIIIII
+        if opc == "1": alertas_stock()
+        elif opc == "2": reporte_existencias()
+        elif opc == "3": reporte_ventas()
+        elif opc == "4": ranking_productos()
+        elif opc == "5": reporte_utilidad()
+        elif opc == "6": reporte_rotacion()
+        elif opc == "7": ventas_rango_fechas()
+        elif opc == "8": exportar_csv()
+        elif opc == "9": break
+        else: print("Opcion invalida.")
+
+
