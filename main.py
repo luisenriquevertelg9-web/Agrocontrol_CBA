@@ -400,3 +400,121 @@ def gestionar_inventario():
         elif opc == "4": break
         else: print("Opcion invalida.")
 
+def registrar_venta():
+    print("\n--- REGISTRAR VENTA ---")
+    if not productos:
+        print("No hay productos registrados.")
+        return
+
+    cliente = input("Nombre del cliente: ").strip()
+    if not cliente:
+        cliente = "Cliente General"
+
+    carrito = []
+    total_venta = 0.0
+
+    while True:
+        mostrar_tabla_productos([p for p in productos if p.get("activo", True)])
+        codigo = input("\nCodigo de producto (o 'FIN' para terminar): ").strip().upper()
+        if codigo == "FIN":
+            break
+
+        p = producto_por_codigo(codigo)
+        if not p or not p.get("activo", True):
+            print("Producto invalido o inactivo.")
+            continue
+
+        st_disponible = stock_producto(codigo)
+        if st_disponible <= 0:
+            print("Sin stock disponible.")
+            continue
+
+        cant_pedida = leer_entero("Cantidad a vender: ", minimo=1)
+        if cant_pedida > st_disponible:
+            print("Stock insuficiente.")
+            continue
+
+        lotes_prod = [l for l in lotes if l["codigo_producto"] == codigo and l["estado"] == "activo" and l["cantidad_actual"] > 0]
+        lotes_prod.sort(key=lambda x: x["fecha_ingreso"])
+
+        pendiente = cant_pedida
+        detalles_lotes = []
+
+        for l in lotes_prod:
+            if pendiente == 0:
+                break
+            a_tomar = min(l["cantidad_actual"], pendiente)
+            l["cantidad_actual"] -= a_tomar
+            if l["cantidad_actual"] == 0:
+                l["estado"] = "agotado"
+            pendiente -= a_tomar
+
+            detalles_lotes.append({
+                "id_lote": l["id"],
+                "cantidad": a_tomar,
+                "costo_unitario": l["costo_unitario"]
+            })
+
+            movimientos.append({
+                "id": siguiente_id(movimientos),
+                "fecha": fecha_actual(),
+                "codigo_producto": codigo,
+                "id_lote": l["id"],
+                "tipo": "SALIDA",
+                "cantidad": a_tomar,
+                "motivo": "Venta realizada"
+            })
+
+        subtotal = cant_pedida * p["precio"]
+        total_venta += subtotal
+
+        carrito.append({
+            "codigo_producto": codigo,
+            "nombre": p["nombre"],
+            "cantidad": cant_pedida,
+            "precio_unitario": p["precio"],
+            "subtotal": subtotal,
+            "desglose_lotes": detalles_lotes
+        })
+
+        otra = input("¿Agregar otro producto? (s/n): ").strip().lower()
+        if otra != "s":
+            break
+
+    if not carrito:
+        print("Venta cancelada.")
+        return
+
+    id_v = siguiente_id(ventas)
+    nueva_venta = {
+        "id": id_v,
+        "fecha": fecha_actual(),
+        "cliente": cliente,
+        "items": carrito,
+        "total": total_venta,
+        "estado": "completada"
+    }
+    ventas.append(nueva_venta)
+    guardar_todo()
+
+    print("\n" + "="*45)
+    print(f"      COMPROBANTE DE VENTA #{id_v}")
+    print("="*45)
+    print(f"Cliente: {cliente}")
+    for item in carrito:
+        print(f"{item['nombre']} x {item['cantidad']} = {dinero(item['subtotal'])}")
+    print(f"TOTAL: {dinero(total_venta)}")
+    print("="*45 + "\n")
+
+def consultar_ventas():
+    print("\n--- HISTORIAL DE VENTAS ---")
+    if not ventas:
+        print("No hay ventas registradas.")
+        return
+
+    print(f"\n{'ID':<5} {'FECHA':<20} {'CLIENTE':<20} {'TOTAL':<12} {'ESTADO':<10}")
+    print("-" * 70)
+    for v in ventas:
+        print(f"{v['id']:<5} {v['fecha']:<20} {v['cliente']:<20} {dinero(v['total']):<12} {v['estado']:<10}")
+
+
