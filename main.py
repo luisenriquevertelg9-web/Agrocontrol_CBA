@@ -518,3 +518,59 @@ def consultar_ventas():
         print(f"{v['id']:<5} {v['fecha']:<20} {v['cliente']:<20} {dinero(v['total']):<12} {v['estado']:<10}")
 
 
+def ranking_productos():
+    print("\n--- RANKING DE PRODUCTOS ---")
+    acumulado = {}
+
+    for v in ventas:
+        if v.get("estado") == "completada":
+            for it in v["items"]:
+                cod = it["codigo_producto"]
+                if cod not in acumulado:
+                    acumulado[cod] = {"nombre": it["nombre"], "unidades": 0, "ingresos": 0.0}
+                acumulado[cod]["unidades"] += it["cantidad"]
+                acumulado[cod]["ingresos"] += it["subtotal"]
+
+    if not acumulado:
+        print("No hay datos de ventas.")
+        return
+
+    lista_ranked = sorted(acumulado.values(), key=lambda x: x["unidades"], reverse=True)
+    for idx, item in enumerate(lista_ranked, 1):
+        print(f"{idx}. {item['nombre']} - Unidades: {item['unidades']} - Total: {dinero(item['ingresos'])}")
+
+def reporte_rotacion():
+    print("\n--- ROTACION POR CATEGORIA ---")
+    categorias = {}
+
+    for p in productos:
+        cat = p["categoria"]
+        if cat not in categorias:
+            categorias[cat] = {"stock": 0, "vendidas": 0}
+        categorias[cat]["stock"] += stock_producto(p["codigo"])
+
+    for v in ventas:
+        if v.get("estado") == "completada":
+            for it in v["items"]:
+                p = producto_por_codigo(it["codigo_producto"])
+                cat = p["categoria"] if p else "Sin categoria"
+                if cat not in categorias:
+                    categorias[cat] = {"stock": 0, "vendidas": 0}
+                categorias[cat]["vendidas"] += it["cantidad"]
+
+    for cat, datos in categorias.items():
+        print(f"Categoria: {cat} | Stock: {datos['stock']} | Vendidas: {datos['vendidas']}")
+
+def ventas_rango_fechas():
+    print("\n--- VENTAS POR RANGO DE FECHAS ---")
+    f_inicio = input("Fecha inicio (YYYY-MM-DD): ").strip()
+    f_fin = input("Fecha fin (YYYY-MM-DD): ").strip()
+
+    filtradas = [v for v in ventas if v.get("estado") == "completada" and f_inicio <= v["fecha"].split()[0] <= f_fin]
+    if not filtradas:
+        print("No hay ventas en ese rango.")
+        return
+
+    total = sum(v["total"] for v in filtradas)
+    print(f"Total ventas en rango: {dinero(total)}")
+
