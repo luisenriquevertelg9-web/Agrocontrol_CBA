@@ -43,3 +43,50 @@ def guardar_todo():
     guardar_archivo(RUTA_MOVIMIENTOS, movimientos)
     guardar_archivo(RUTA_VENTAS, ventas)
 
+def dinero(valor):
+    return f"${float(valor):,.2f}"
+
+def fecha_actual():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def leer_entero(mensaje, minimo=None):
+    while True:
+        try:
+            val = int(input(mensaje).strip())
+            if minimo is not None and val < minimo:
+                print(f"Debe ser un numero entero mayor o igual a {minimo}.")
+                continue
+            return val
+        except ValueError:
+            print("Entrada invalida. Ingrese un numero entero.")
+
+def leer_float(mensaje, minimo=None):
+    while True:
+        try:
+            val = float(input(mensaje).strip())
+            if minimo is not None and val < minimo:
+                print(f"Debe ser un numero mayor o igual a {minimo}.")
+                continue
+            return val
+        except ValueError:
+            print("Entrada invalida. Ingrese un numero decimal.")
+
+def producto_por_codigo(codigo):
+    for p in productos:
+        if p["codigo"] == codigo:
+            return p
+    return None
+
+def lote_por_id(id_lote):
+    for l in lotes:
+        if l["id"] == id_lote:
+            return l
+    return None
+
+def stock_producto(codigo):
+    return sum(l["cantidad_actual"] for l in lotes if l["codigo_producto"] == codigo and l["estado"] == "activo")
+
+def siguiente_id(lista):
+    if not lista:
+        return 1
+    return max(x["id"] for x in lista) + 1
