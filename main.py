@@ -319,3 +319,84 @@ def gestionar_lotes():
         elif opc == "5": break
         else: print("Opcion invalida.")
 
+def movimiento_inventario():
+    print("\n--- MOVIMIENTO MANUAL DE INVENTARIO ---")
+    codigo = input("Codigo del producto: ").strip().upper()
+    p = producto_por_codigo(codigo)
+    if not p:
+        print("Producto no encontrado.")
+        return
+
+    lotes_prod = [l for l in lotes if l["codigo_producto"] == codigo and l["estado"] == "activo" and l["cantidad_actual"] > 0]
+    if not lotes_prod:
+        print("No hay lotes activos para este producto.")
+        return
+
+    for l in lotes_prod:
+        print(f"ID #{l['id']} - Ubicacion: {l['ubicacion']} - Stock: {l['cantidad_actual']}")
+
+    id_l = leer_entero("ID del lote a afectar: ", minimo=1)
+    lote_sel = next((l for l in lotes_prod if l["id"] == id_l), None)
+    if not lote_sel:
+        print("Lote invalido.")
+        return
+
+    print("1. ENTRADA  2. SALIDA")
+    t_op = input("Seleccione: ").strip()
+    if t_op not in ["1", "2"]:
+        print("Opcion invalida.")
+        return
+
+    tipo = "ENTRADA" if t_op == "1" else "SALIDA"
+    cant = leer_entero("Cantidad: ", minimo=1)
+    motivo = input("Motivo: ").strip()
+
+    if tipo == "SALIDA":
+        if cant > lote_sel["cantidad_actual"]:
+            print("Cantidad supera el stock del lote.")
+            return
+        lote_sel["cantidad_actual"] -= cant
+        if lote_sel["cantidad_actual"] == 0:
+            lote_sel["estado"] = "agotado"
+    else:
+        lote_sel["cantidad_actual"] += cant
+
+    movimientos.append({
+        "id": siguiente_id(movimientos),
+        "fecha": fecha_actual(),
+        "codigo_producto": codigo,
+        "id_lote": lote_sel["id"],
+        "tipo": tipo,
+        "cantidad": cant,
+        "motivo": motivo if motivo else "Ajuste manual"
+    })
+
+    guardar_todo()
+    print("Movimiento registrado exitosamente.")
+
+def listar_movimientos():
+    print("\n--- HISTORIAL DE MOVIMIENTOS ---")
+    if not movimientos:
+        print("No hay movimientos registrados.")
+        return
+
+    print(f"\n{'ID':<5} {'FECHA':<20} {'PRODUCTO':<10} {'LOTE':<6} {'TIPO':<8} {'CANT':<6} {'MOTIVO':<30}")
+    print("-" * 90)
+    for m in movimientos:
+        print(f"{m['id']:<5} {m['fecha']:<20} {m['codigo_producto']:<10} {m['id_lote']:<6} {m['tipo']:<8} {m['cantidad']:<6} {m['motivo']:<30}")
+
+def gestionar_inventario():
+    while True:
+        print("\n=== GESTION DE INVENTARIO ===")
+        print("1. Consultar existencias generales")
+        print("2. Registrar ajuste manual / merma")
+        print("3. Ver historial de movimientos")
+        print("4. Volver al menu principal")
+        opc = input("Seleccione una opcion: ").strip()
+
+        if opc == "1": listar_productos()
+        elif opc == "2": movimiento_inventario()
+        elif opc == "3": listar_movimientos()
+        elif opc == "4": break
+        else: print("Opcion invalida.")
+
