@@ -712,3 +712,5 @@ def menu():
             print("Opcion invalida.")
 
 
+if __name__ == "__main__":
+    menu()
