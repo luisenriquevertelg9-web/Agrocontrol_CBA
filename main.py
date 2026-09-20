@@ -44,6 +44,7 @@ def guardar_todo():
     guardar_archivo(RUTA_MOVIMIENTOS, movimientos)
     guardar_archivo(RUTA_VENTAS, ventas)
 
+
 def dinero(valor):
     return f"${float(valor):,.2f}"
 
@@ -97,12 +98,12 @@ def mostrar_tabla_productos(lista):
     if not lista:
         print("No hay productos para mostrar.")
         return
-    print(f"\n{'CODIGO':<10} {'NOMBRE':<25} {'CATEGORIA':<15} {'UNIDAD':<8} {'PRECIO':<12} {'ST.MIN':<8} {'STOCK':<8} {'ESTADO':<8}")
+    print(f"\n{'CODIGO':<10} {'NOMBRE':<25} {'CATEGORIA':<15} {'UNIDAD':<8} {'PRECIO':>12} {'ST.MIN':>8} {'STOCK':>8} {'ESTADO':<10}")
     print("-" * 100)
     for p in lista:
         st = stock_producto(p["codigo"])
         est = "Activo" if p.get("activo", True) else "Inactivo"
-        print(f"{p['codigo']:<10} {p['nombre']:<25} {p['categoria']:<15} {p['unidad']:<8} {dinero(p['precio']):<12} {p['stock_minimo']:<8} {st:<8} {est:<8}")
+        print(f"{p['codigo']:<10} {p['nombre']:<25} {p['categoria']:<15} {p['unidad']:<8} {dinero(p['precio']):>12} {p['stock_minimo']:>8} {st:>8} {est:<10}")
 
 def registrar_producto():
     print("\n--- REGISTRAR PRODUCTO ---")
@@ -139,7 +140,7 @@ def listar_productos():
 
 def buscar_producto():
     print("\n--- BUSCAR PRODUCTO ---")
-    q = input("Ingrese texto a buscar: ").strip().lower()
+    q = input("Ingrese producto a buscar: ").strip().lower()
     hallados = [p for p in productos if q in p["codigo"].lower() or q in p["nombre"].lower() or q in p["categoria"].lower()]
     mostrar_tabla_productos(hallados)
 
@@ -255,12 +256,12 @@ def listar_lotes():
         print("No hay lotes registrados.")
         return
 
-    print(f"\n{'ID':<5} {'CODIGO':<10} {'PRODUCTO':<20} {'INICIAL':<8} {'ACTUAL':<8} {'COSTO U.':<12} {'UBICACION':<15} {'ESTADO':<8}")
+    print(f"\n{'ID':<5} {'CODIGO':<10} {'PRODUCTO':<20} {'INICIAL':>8} {'ACTUAL':>8} {'COSTO U.':>12} {'UBICACION':<15} {'ESTADO':<10}")
     print("-" * 95)
     for l in lotes:
         p = producto_por_codigo(l["codigo_producto"])
         nom_p = p["nombre"] if p else "Desconocido"
-        print(f"{l['id']:<5} {l['codigo_producto']:<10} {nom_p:<20} {l['cantidad_inicial']:<8} {l['cantidad_actual']:<8} {dinero(l['costo_unitario']):<12} {l['ubicacion']:<15} {l['estado']:<8}")
+        print(f"{l['id']:<5} {l['codigo_producto']:<10} {nom_p:<20} {l['cantidad_inicial']:>8} {l['cantidad_actual']:>8} {dinero(l['costo_unitario']):>12} {l['ubicacion']:<15} {l['estado']:<10}")
 
 def cosechar_lote():
     print("\n--- ADICION A LOTE ---")
@@ -381,10 +382,10 @@ def listar_movimientos():
         print("No hay movimientos registrados.")
         return
 
-    print(f"\n{'ID':<5} {'FECHA':<20} {'PRODUCTO':<10} {'LOTE':<6} {'TIPO':<8} {'CANT':<6} {'MOTIVO':<30}")
+    print(f"\n{'ID':<5} {'FECHA':<20} {'PRODUCTO':<10} {'LOTE':<6} {'TIPO':<8} {'CANT':>6} {'MOTIVO':<30}")
     print("-" * 90)
     for m in movimientos:
-        print(f"{m['id']:<5} {m['fecha']:<20} {m['codigo_producto']:<10} {m['id_lote']:<6} {m['tipo']:<8} {m['cantidad']:<6} {m['motivo']:<30}")
+        print(f"{m['id']:<5} {m['fecha']:<20} {m['codigo_producto']:<10} {m['id_lote']:<6} {m['tipo']:<8} {m['cantidad']:>6} {m['motivo']:<30}")
 
 def gestionar_inventario():
     while True:
@@ -513,10 +514,10 @@ def consultar_ventas():
         print("No hay ventas registradas.")
         return
 
-    print(f"\n{'ID':<5} {'FECHA':<20} {'CLIENTE':<20} {'TOTAL':<12} {'ESTADO':<10}")
+    print(f"\n{'ID':<5} {'FECHA':<20} {'CLIENTE':<20} {'TOTAL':>12} {'ESTADO':<10}")
     print("-" * 70)
     for v in ventas:
-        print(f"{v['id']:<5} {v['fecha']:<20} {v['cliente']:<20} {dinero(v['total']):<12} {v['estado']:<10}")
+        print(f"{v['id']:<5} {v['fecha']:<20} {v['cliente']:<20} {dinero(v['total']):>12} {v['estado']:<10}")
 
  
 
@@ -620,11 +621,11 @@ def alertas_stock():
         print("No hay productos con stock bajo.")
         return
 
-    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':<10} {'MINIMO':<10}")
+    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':>8} {'MINIMO':>8}")
     print("-" * 55)
 
     for a in alertas:
-        print(f"{a['codigo']:<10} {a['nombre']:<25} {a['stock']:<10} {a['minimo']:<10}")
+        print(f"{a['codigo']:<10} {a['nombre']:<25} {a['stock']:>8} {a['minimo']:>8}")
 
 
 def reporte_existencias():
@@ -636,17 +637,17 @@ def reporte_existencias():
 
     total = 0.0
 
-    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':<10} {'PRECIO':<15} {'VALOR':<15}")
-    print("-" * 80)
+    print(f"\n{'CODIGO':<10} {'PRODUCTO':<25} {'STOCK':>8} {'PRECIO':>12} {'VALOR':>14}")
+    print("-" * 75)
 
     for p in productos:
         stock = stock_producto(p["codigo"])
         valor = stock * p["precio"]
         total += valor
 
-        print(f"{p['codigo']:<10} {p['nombre']:<25} {stock:<10} {dinero(p['precio']):<15} {dinero(valor):<15}")
+        print(f"{p['codigo']:<10} {p['nombre']:<25} {stock:>8} {dinero(p['precio']):>12} {dinero(valor):>14}")
 
-    print("-" * 80)
+    print("-" * 75)
     print(f"VALOR TOTAL DEL INVENTARIO: {dinero(total)}")
 
 
