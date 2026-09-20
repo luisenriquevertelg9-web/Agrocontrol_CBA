@@ -103,8 +103,8 @@ def mostrar_tabla_productos(lista):
     for p in lista:
         st = stock_producto(p["codigo"])
         est = "Activo" if p.get("activo", True) else "Inactivo"
-        print(f"{p['codigo']:<10} {p['nombre']:<25} {p['categoria']:<15} {p['unidad']:<8} {dinero(p['precio']):>12} {p['stock_minimo']:>8} {st:>8} {est:<10}")
-
+        nombre_corto = p["nombre"][:20]
+        print(f"{p['codigo']:<10} {nombre_corto:<25} {p['categoria']:<15} ...") 
 def registrar_producto():
     print("\n--- REGISTRAR PRODUCTO ---")
     codigo = input("Codigo del producto: ").strip().upper()
